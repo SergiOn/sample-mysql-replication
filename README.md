@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/making/sample-mysql-replication.svg)](https://travis-ci.org/making/sample-mysql-replication)

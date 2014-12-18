@@ -1,0 +1,15 @@
+logging.level:
+  org.hibernate.SQL: DEBUG
+---
+spring:
+    profiles: mysql
+    datasource:
+      driverClassName: com.mysql.jdbc.ReplicationDriver
+      url: jdbc:mysql:replication://localhost:${mysql.master.port},localhost:${mysql.slave.port}/it
+      username: root
+      password: root
+    jpa:
+      database: MYSQL
+      show-sql: true
+      hibernate:
+        ddl-auto: create

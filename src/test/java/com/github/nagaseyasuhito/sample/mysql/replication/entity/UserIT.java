@@ -1,49 +1,37 @@
 package com.github.nagaseyasuhito.sample.mysql.replication.entity;
 
-import java.sql.Connection;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-
-import lombok.Cleanup;
-import lombok.extern.java.Log;
-
+import com.github.nagaseyasuhito.sample.mysql.replication.App;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
-import static org.hamcrest.CoreMatchers.*;
-
-@Log
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(classes = App.class)
 public class UserIT {
+    @Autowired
+    UserRepository userRepository;
+    User user;
 
-	@Test
-	public void persistSuccess() throws Exception {
-		Map<String, String> properties = ImmutableMap.of("javax.persistence.jdbc.url", System.getProperty("javax.persistence.jdbc.url"));
+    @Before
+    public void setUp() throws Exception {
+        user = new User();
+        user.setName("name");
+        user.setPassword("password");
+        userRepository.save(user);
+    }
 
-		@Cleanup
-		EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("sample-mysql-replication", properties);
-		@Cleanup
-		EntityManager entityManager = entityManagerFactory.createEntityManager();
-
-		entityManager.getTransaction().begin();
-		User user = new User();
-		user.setName("name");
-		user.setPassword("password");
-		entityManager.persist(user);
-		entityManager.getTransaction().commit();
-
-		// from slave
-		entityManager.getTransaction().begin();
-		// for EclipseLink
-		entityManager.unwrap(Connection.class).setReadOnly(true);
-		// for Hibernate
-		// entityManager.unwrap(SessionImplementor.class).connection().setReadOnly(true);
-		assertThat(entityManager.createQuery("from User u where u.name = 'name'", User.class).getSingleResult(), is(user));
-		entityManager.getTransaction().commit();
-	}
+    @Test
+    public void testFind() throws Exception {
+        Optional<User> opt = userRepository.findByName("name");
+        assertThat(opt.isPresent(), is(true));
+        opt.ifPresent(u -> assertThat(u, is(user)));
+    }
 }
